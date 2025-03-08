@@ -1,0 +1,52 @@
+import React, { useState } from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { auth } from "./firebase"; // Konfiguracja Firebase
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { Button, Input } from "@/components/ui";
+
+const Home = () => <h1 className="text-3xl font-bold">Usługi drukarskie</h1>;
+
+const Login = ({ setUser }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const handleLogin = async () => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      setUser(userCredential.user);
+    } catch (error) {
+      console.error("Błąd logowania", error.message);
+    }
+  };
+  return (
+    <div className="p-6 max-w-md mx-auto">
+      <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <Input type="password" placeholder="Hasło" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <Button onClick={handleLogin}>Zaloguj się</Button>
+    </div>
+  );
+};
+
+const Dashboard = ({ user }) => (
+  <div>
+    <h2>Witaj, {user?.email}</h2>
+    <Button onClick={() => signOut(auth)}>Wyloguj</Button>
+  </div>
+);
+
+const App = () => {
+  const [user, setUser] = useState(null);
+
+  return (
+    <Router>
+      <div className="p-6">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login setUser={setUser} />} />
+          <Route path="/dashboard" element={user ? <Dashboard user={user} /> : <Login setUser={setUser} />} />
+        </Routes>
+      </div>
+    </Router>
+  );
+};
+
+export default App;
